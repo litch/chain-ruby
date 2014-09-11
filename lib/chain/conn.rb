@@ -1,4 +1,5 @@
 require 'thread'
+require 'uri'
 
 module Chain
   class Conn
@@ -31,6 +32,7 @@ module Chain
 
     def make_req!(type, path, body=nil)
       conn do |c|
+        path = URI.encode(path)
         req = type.new(@url.request_uri + path)
         req.basic_auth(@key_id, @key_secret)
         req['Content-Type'] = 'application/json'
