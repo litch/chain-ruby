@@ -26,11 +26,18 @@ module Chain
 
   # Prefixed in the path of HTTP requests.
   API_VERSION = 'v2'
-  BLOCK_CHAIN = 'bitcoin'
 
   # Raised when an unexpected error occurs in either
   # the HTTP request or the parsing of the response body.
   ChainError = Class.new(StandardError)
+
+  @config = { :network => "bitcoin" }
+  @valid_config_keys = @config.keys
+
+  # Configure through hash
+  def self.configure(opts = {})
+    opts.each { |k,v| @config[k.to_sym] = v if @valid_config_keys.include? k.to_sym }
+  end
 
   def self.default_client=(c)
     @default_client = c
@@ -53,7 +60,7 @@ module Chain
   end
 
   def self.block_chain
-    BLOCK_CHAIN
+    @config[:network]
   end
 
 end

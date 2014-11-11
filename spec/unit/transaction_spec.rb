@@ -109,7 +109,7 @@ describe Chain::ChainTransaction do
         with(:headers => {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'Host'=>'test.webbtc.com', 'User-Agent'=>'Ruby'}).
         to_return(:status => 200, :body => load_fixture('015a930572af772ffd77257aac0dd6d87350b263ada2299cbcbdf69e618277e7.bin'), :headers => {})
 
-      stub_request(:put, "https://GUEST-TOKEN:@api.chain.com//v2/bitcoin/transactions").
+      stub_request(:put, "https://GUEST-TOKEN:@api.chain.com//v2/testnet3/transactions").
         with { |request|
           JSON.parse(request.body)['hex'].upcase.start_with?('0100000001e77782619ef6bdbc9c29a2ad63b25073d8d60dac7a2577fd2f77'.upcase) }.
         to_return(:status => 200, :body => {transaction_hash: 12345}.to_json, :headers => {})

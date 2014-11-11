@@ -25,7 +25,6 @@ class ChainUtils
   end
 
   def self.network_params
-    # Chain::Config.instance.bitcoin_network == 'mainnet' ? NetworkParameters.prodNet() : NetworkParameters.testNet3()
-    NetworkParameters.testNet3()
+    Chain::block_chain == 'bitcoin' ? NetworkParameters.prodNet() : NetworkParameters.testNet3()
   end
 end
