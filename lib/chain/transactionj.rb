@@ -15,7 +15,7 @@ java_import 'org.bitcoinj.core.NetworkParameters'
 module Chain
   # The Chain::Transaction is a mechanism to create new transactions
   # for the bitcoin network.
-  class TransactionJ
+  class ChainTransaction
     DEFAULT_FEE = 10_000
     MissingUnspentsError = Class.new(StandardError)
     MissingInputsError = Class.new(StandardError)
@@ -118,25 +118,7 @@ module Chain
 
           add_signed_input.call(output, key)
         end
-
-
-      # unspents.each do |unspent|
-      #   builder.input do |inp|
-      #     inp.prev_out        unspent["transaction_hash"]
-      #     inp.prev_out_index  unspent["output_index"]
-      #     inp.prev_out_script [unspent["script_hex"]].pack('H*')
-      #     inp.signature_key   @inputs[unspent["addresses"][0]]
-      #   end
-      # end
-
-      # @outputs.each do |addr, amount|
-      #   builder.output do |out|
-      #     out.value amount
-      #     out.script {|s| s.recipient(addr)}
-      #   end
-      # end
       end
-
     end
 
     class ChainUtils

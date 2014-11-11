@@ -4,6 +4,18 @@
     "private": "cVdtEyijQXFx7bmwrBMrWVbqpg8VWXsGtrUYtZR6fNZ6r4cRnRT5"
   },
 
-  "get_addresses_unspents": [{"transaction_hash":"015a930572af772ffd77257aac0dd6d87350b263ada2299cbcbdf69e618277e7","output_index":0,"value":90000,"addresses":["mxxdfxLaFGePNfFJQiVkyLix3ZAjY5cKQd"],"script":"OP_DUP OP_HASH160 bf55687b8f2eac9a5cc026d1be430c9334f804ec OP_EQUALVERIFY OP_CHECKSIG","script_hex":"76a914bf55687b8f2eac9a5cc026d1be430c9334f804ec88ac","script_type":"pubkeyhash","required_signatures":1,"spent":false,"confirmations":27016}]
+  "get_addresses_unspents": [
+    {"transaction_hash":"015a930572af772ffd77257aac0dd6d87350b263ada2299cbcbdf69e618277e7",
+    "output_index":0,
+    "value":90000,
+    "addresses":[
+      "mxxdfxLaFGePNfFJQiVkyLix3ZAjY5cKQd"
+    ],
+    "script":"OP_DUP OP_HASH160 bf55687b8f2eac9a5cc026d1be430c9334f804ec OP_EQUALVERIFY OP_CHECKSIG",
+    "script_hex":"76a914bf55687b8f2eac9a5cc026d1be430c9334f804ec88ac",
+    "script_type":"pubkeyhash",
+    "required_signatures":1,
+    "spent":false,
+    "confirmations":27016}]
 }
 

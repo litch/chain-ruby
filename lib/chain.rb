@@ -9,9 +9,9 @@ module Chain
   autoload :Sweeper, 'chain/sweeper'
   if RUBY_PLATFORM == 'java'
     Dir[File.join(File.dirname(__FILE__), 'jar', '*.jar')].each { |filename| require filename }
-    autoload :TransactionJ, 'chain/transactionj'
+    autoload :ChainTransaction, 'chain/transactionj'
   else
-    autoload :Transaction, 'chain/transaction'
+    autoload :ChainTransaction, 'chain/transaction'
   end
 
   autoload :Client, 'chain/client'

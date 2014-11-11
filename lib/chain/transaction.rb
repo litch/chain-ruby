@@ -3,7 +3,7 @@ require 'bitcoin'
 module Chain
   # The Chain::Transaction is a mechanism to create new transactions
   # for the bitcoin network.
-  class Transaction
+  class ChainTransaction
     DEFAULT_FEE = 10_000
     MissingUnspentsError = Class.new(StandardError)
     MissingInputsError = Class.new(StandardError)
