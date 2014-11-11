@@ -1,5 +1,3 @@
-# import 'org.bitcoinj.core'
-# import 'org.spongycastle.crypto.KeyGenerationParameters'
 java_import 'javax.xml.bind.DatatypeConverter'
 java_import 'java.math.BigInteger'
 java_import 'org.bitcoinj.core.ECKey'
