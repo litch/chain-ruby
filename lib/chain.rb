@@ -7,7 +7,13 @@ require 'uri'
 # A module that wraps the Chain SDK.
 module Chain
   autoload :Sweeper, 'chain/sweeper'
-  autoload :Transaction, 'chain/transaction'
+  if RUBY_PLATFORM == 'java'
+    Dir[File.join(File.dirname(__FILE__), 'jar', '*.jar')].each { |filename| require filename }
+    autoload :TransactionJ, 'chain/transactionj'
+  else
+    autoload :Transaction, 'chain/transaction'
+  end
+
   autoload :Client, 'chain/client'
   autoload :Conn, 'chain/conn'
 

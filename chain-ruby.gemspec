@@ -21,5 +21,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'chain-bitcoin-ruby', '0.0.1'
 
   s.add_development_dependency 'rspec', '3.1.0'
-  s.add_development_dependency 'byebug', '3.4.0'
+  s.add_development_dependency 'webmock', '1.18.0'
+  # s.add_development_dependency 'byebug', '3.4.0'
 end
