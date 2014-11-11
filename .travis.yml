@@ -3,3 +3,6 @@ rvm:
   - 2.1.0
   - 2.0.0-p481
   - jruby-1.7.15
+env:
+  global:
+    - "JRUBY_OPTS=--2.0"
