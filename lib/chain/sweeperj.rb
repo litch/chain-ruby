@@ -10,11 +10,11 @@ java_import 'org.bitcoinj.core.Base58'
 java_import 'org.bitcoinj.core.DumpedPrivateKey'
 java_import 'org.bitcoinj.core.NetworkParameters'
 
-require 'lib/chain/chain_java_utils'
+require 'chain/chain_java_utils'
 
 module Chain
   class Sweeper
-    attr_reader :amount
+    attr_reader :amount, :transaction, :raw_transaction
 
     # Unable find unspent outputs for the addresses passed into from_keystrings.
     MissingUnspentsError = Class.new(StandardError)
@@ -40,13 +40,17 @@ module Chain
     # 3. Sends the transaction to bitcoin network using Chain's API
     # Chain::ChainError will be raised if there is any network related errors.
     def sweep!
+
       unspents = Chain.get_addresses_unspents(@from_keys.keys)
       raise(MissingUnspentsError) if unspents.nil? or unspents.empty?
 
-      tx = build_txn(unspents)
-      rawtx = DatatypeConverter.printHexBinary(tx.unsafeBitcoinSerialize());
+      @transaction = build_transaction_from_unspents(unspents)
 
-      Chain.send_transaction(rawtx)
+      @transaction.verify
+
+      @raw_transaction = DatatypeConverter.printHexBinary(@transaction.unsafeBitcoinSerialize());
+
+      Chain.send_transaction(@raw_transaction)
     end
 
     private
@@ -59,25 +63,26 @@ module Chain
     end
 
 
-    def build_txn(unspents)
+    def build_transaction_from_unspents(unspents)
       transaction = Transaction.new(ChainUtils.network_params).tap do |builder|
         @amount = unspents.map {|u| u["value"]}.reduce(:+) - @options[:fee]
 
         builder.addOutput(Coin.valueOf(@amount), Address.new(ChainUtils.network_params, @to_addr))
 
-
         unspents.each do |unspent|
+          p unspent
           output_index = unspent['output_index']
           input = ChainUtils.fetch_transaction(unspent['transaction_hash'])
 
-          output = input.getOutput(output_index)
-          key = @from_keys[unspent['addresses'][0]]
+          p output = input.getOutput(output_index)
+          p key = @from_keys[unspent['addresses'].first] #oddly, this is always an array of size 1, even if your unspent_index is 1 (rather than 0)
+
           add_signed_input = builder.java_method :addSignedInput, [output.class, key.class]
 
           add_signed_input.call(output, key)
         end
+        p "Fee is currently: #{builder.getFee()}"
       end
     end
-
   end
 end

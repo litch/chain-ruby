@@ -10,7 +10,7 @@ java_import 'org.bitcoinj.core.Base58'
 java_import 'org.bitcoinj.core.DumpedPrivateKey'
 java_import 'org.bitcoinj.core.NetworkParameters'
 
-require 'lib/chain/chain_java_utils'
+require 'chain/chain_java_utils'
 
 module Chain
   # The Chain::Transaction is a mechanism to create new transactions

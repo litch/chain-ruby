@@ -4,7 +4,7 @@ module Chain
   # Move all BTC from a list of addresses to a single address.
   # Private keys are kept in memory and not sent on the network.
   class Sweeper
-    attr_reader :amount
+    attr_reader :amount, :transaction, :raw_transaction
 
     # Unable find unspent outputs for the addresses passed into from_keystrings.
     MissingUnspentsError = Class.new(StandardError)
@@ -34,10 +34,11 @@ module Chain
       unspents = Chain.get_addresses_unspents(@from_keys.keys)
       raise(MissingUnspentsError) if unspents.nil? or unspents.empty?
 
-      tx = build_txn(unspents)
-      rawtx = tx.to_payload.unpack('H*')
+      @transaction = build_txn(unspents)
+      p @raw_transaction = @transaction.to_payload.unpack('H*')
 
-      Chain.send_transaction(rawtx[0])
+
+      # Chain.send_transaction(@raw_transaction[0])
     end
 
     private

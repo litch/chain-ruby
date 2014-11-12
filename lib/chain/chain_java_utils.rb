@@ -5,11 +5,20 @@ class ChainUtils
     Transaction.new(network_params, bytes)
   end
 
+  def self.webbtc_host
+    Chain::block_chain == 'bitcoin' ? 'http://webbtc.com' : 'http://test.webbtc.com'
+  end
+
   def self.webbtc_get_bin(path)
-    host = 'http://test.webbtc.com'
-    uri = URI("#{host}#{path}")
-    response = Net::HTTP.get_response(uri)
-    response.body
+    uri = URI("#{webbtc_host}#{path}")
+    p response = Net::HTTP.get_response(uri)
+    if response.code == '200'
+      return response.body
+    else
+      p "CONNECTION ERROR TO WEBBTC - trying again in 500ms"
+      sleep 0.5
+      return webbtc_get_bin(path)
+    end
   end
 
   def self.key_from_base58_string(base58_string)
