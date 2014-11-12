@@ -36,32 +36,30 @@ module Chain
       raise(MissingUnspentsError) if @from_keys.nil? or @from_keys.empty?
     end
 
-    # Creates a transaction and executes the network calls to perform the sweep.
-    # 1. Uses Chain to fetch all unspent outputs associated with from_keystrings
-    # 2. Create & Sign bitcoin transaction
-    # 3. Sends the transaction to bitcoin network using Chain's API
-    # Chain::ChainError will be raised if there is any network related errors.
     def sweep!
-
       unspents = Chain.get_addresses_unspents(@from_keys.keys)
       raise(MissingUnspentsError) if unspents.nil? or unspents.empty?
+      build_transaction_from_unspents(unspents)
+      sign_transaction
+      send_transaction
+    end
 
-      @transaction = build_transaction_from_unspents(unspents)
+    private
 
+    def sign_transaction
       @transaction.inputs.each_with_index do |input, i|
-        p "Buldinging sig #{i}"
         script_sig = build_transaction_input_script_sig(@transaction, i, @from_keys.values.first)
         input.setScriptSig(script_sig)
         input.verify
       end
       @transaction.verify
+    end
 
+    def send_transaction
       @raw_transaction = DatatypeConverter.printHexBinary(@transaction.unsafeBitcoinSerialize());
 
       Chain.send_transaction(@raw_transaction)
     end
-
-    private
 
     def strs_to_keys(priv_keys)
       keys = priv_keys.map{|pk|
@@ -72,11 +70,10 @@ module Chain
 
 
     def build_transaction_from_unspents(unspents)
-      transaction = Transaction.new(ChainUtils.network_params).tap do |builder|
+      @transaction = Transaction.new(ChainUtils.network_params).tap do |builder|
         @amount = unspents.map {|u| u["value"]}.reduce(:+) - @options[:fee]
 
         unspents.each do |unspent|
-          p unspent
           output_index = unspent['output_index']
           input = ChainUtils.fetch_transaction(unspent['transaction_hash'])
 
@@ -85,11 +82,10 @@ module Chain
         end
 
         builder.addOutput(Coin.valueOf(@amount), Address.new(ChainUtils.network_params, @to_addr))
-        p "Fee is currently: #{builder.getFee()}"
       end
     end
 
-    # @transaction [Object] Transaction returned from `#build_unsigned_transaction`.
+    # @transaction [Object] Transaction returned from `#build_transaction_from_unspents`.
     # @input_index [Fixnum] The index of the input.
     # @private_key [ECKey] The private key used to sign the input at this index.
     # @return [String] The script_sig used for signing this (and only this) transaction.
@@ -106,7 +102,7 @@ module Chain
       script_sig
     end
 
-    # @transaction [Object] Transaction returned from `#build_unsigned_transaction`
+    # @transaction [Object] Transaction returned from `#build_transaction_from_unspents`
     # @input_index [Fixnum] The index of the input.
     # @return [TransactionInput] A verified unspent input.
     # @raise [Chain::Error]
