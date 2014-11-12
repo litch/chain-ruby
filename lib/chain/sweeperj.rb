@@ -4,6 +4,8 @@ java_import 'org.bitcoinj.core.ECKey'
 java_import 'org.bitcoinj.core.Coin'
 java_import 'org.bitcoinj.core.Address'
 java_import 'org.bitcoinj.core.AddressFormatException'
+java_import 'org.bitcoinj.core.ScriptException'
+java_import 'org.bitcoinj.script.ScriptBuilder'
 java_import 'org.bitcoinj.core.Utils'
 java_import 'org.bitcoinj.core.Transaction'
 java_import 'org.bitcoinj.core.Base58'
@@ -46,6 +48,12 @@ module Chain
 
       @transaction = build_transaction_from_unspents(unspents)
 
+      @transaction.inputs.each_with_index do |input, i|
+        p "Buldinging sig #{i}"
+        script_sig = build_transaction_input_script_sig(@transaction, i, @from_keys.values.first)
+        input.setScriptSig(script_sig)
+        input.verify
+      end
       @transaction.verify
 
       @raw_transaction = DatatypeConverter.printHexBinary(@transaction.unsafeBitcoinSerialize());
@@ -67,22 +75,56 @@ module Chain
       transaction = Transaction.new(ChainUtils.network_params).tap do |builder|
         @amount = unspents.map {|u| u["value"]}.reduce(:+) - @options[:fee]
 
-        builder.addOutput(Coin.valueOf(@amount), Address.new(ChainUtils.network_params, @to_addr))
-
         unspents.each do |unspent|
           p unspent
           output_index = unspent['output_index']
           input = ChainUtils.fetch_transaction(unspent['transaction_hash'])
 
-          p output = input.getOutput(output_index)
-          p key = @from_keys[unspent['addresses'].first] #oddly, this is always an array of size 1, even if your unspent_index is 1 (rather than 0)
-
-          add_signed_input = builder.java_method :addSignedInput, [output.class, key.class]
-
-          add_signed_input.call(output, key)
+          output = input.getOutput(output_index)
+          builder.addInput(output)
         end
+
+        builder.addOutput(Coin.valueOf(@amount), Address.new(ChainUtils.network_params, @to_addr))
         p "Fee is currently: #{builder.getFee()}"
       end
     end
+
+    # @transaction [Object] Transaction returned from `#build_unsigned_transaction`.
+    # @input_index [Fixnum] The index of the input.
+    # @private_key [ECKey] The private key used to sign the input at this index.
+    # @return [String] The script_sig used for signing this (and only this) transaction.
+    # @raise [Coinmux::Error]
+    def build_transaction_input_script_sig(transaction, input_index, private_key)
+      tx_input = get_unspent_tx_input(transaction, input_index)
+      key = private_key
+      connected_pub_key_script = tx_input.getOutpoint().getConnectedPubKeyScript()
+      script_public_key = tx_input.getOutpoint().getConnectedOutput().getScriptPubKey().to_s
+
+      signature = transaction.calculateSignature(input_index, key, connected_pub_key_script, Transaction::SigHash::ALL, false)
+      script_sig = ScriptBuilder.createInputScript(signature, key)
+
+      script_sig
+    end
+
+    # @transaction [Object] Transaction returned from `#build_unsigned_transaction`
+    # @input_index [Fixnum] The index of the input.
+    # @return [TransactionInput] A verified unspent input.
+    # @raise [Chain::Error]
+    def get_unspent_tx_input(transaction, input_index)
+      input_index = input_index.to_s.to_i
+      raise Chain::Error, "Invalid input index" if input_index < 0 || input_index >= transaction.getInputs().size()
+      tx_input = transaction.getInput(input_index)
+      raise Chain::Error, "No connected output: #{tx_input}" if tx_input.getOutpoint().getConnectedOutput().nil?
+      raise Chain::Error, "Signing already signed transaction: #{tx_input}" if tx_input.getScriptBytes().length != 0
+      begin
+        tx_input.getScriptSig().correctlySpends(transaction, input_index, tx_input.getOutpoint().getConnectedOutput().getScriptPubKey())
+        raise Chain::Error, "Input already spent: #{tx_input}"
+      rescue ScriptException
+        # input not spent... what we want
+      end
+
+      tx_input
+    end
+
   end
 end
